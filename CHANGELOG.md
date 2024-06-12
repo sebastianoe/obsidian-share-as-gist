@@ -1,3 +1,7 @@
+# v1.6.0 (June 12, 2024)
+
+* Support Github Enterprise instances by allowing users to set a custom GitHub API URL. You can set the base url in the plugin settings.
+
 # v1.5.0 (May 16, 2024)
 
 * Allow optionally setting the description when creating a gist

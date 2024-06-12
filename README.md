@@ -43,6 +43,8 @@ Once you've create a gist, if you make changes to your note (for example respond
 * __Enable auto-saving Gists after edit__ (*disabled by default*): Whether your gists should be automatically updated when you save your note. If this is disabled, you can update your gists automatically with the normal "share" command.
 * __Enable auto-save notice__ (*disabled by default*): Whether a notice should be displayed when your gists are automatically updated. This option is only relevant if the "Enable auto-saving Gists after edit" option above is turned on.
 
+* __GitHub base URL__ (*disabled by default*): Allow to specify a custom GitHub API URL. This is useful for users of GitHub Enterprise instances.
+
 ## Securing your GitHub personal access token
 
 Your GitHub access token will be stored in Obsidian's `localStorage`.

@@ -13,7 +13,12 @@ import {
 } from 'obsidian';
 import matter from 'gray-matter';
 import { CreateGistResultStatus, createGist, updateGist } from 'src/gists';
-import { getAccessToken, setAccessToken } from './src/storage';
+import {
+  getAccessToken,
+  setAccessToken,
+  getBaseUrl,
+  setBaseUrl,
+} from './src/storage';
 import {
   SharedGist,
   getSharedGistsForFile,
@@ -113,6 +118,7 @@ const shareGistEditorCallback =
     const { isPublic, app, plugin } = opts;
 
     const accessToken = getAccessToken();
+    const baseUrl = getBaseUrl();
 
     const { enableUpdatingGistsAfterCreation, includeFrontMatter } =
       await getLatestSettings(plugin);
@@ -152,6 +158,7 @@ const shareGistEditorCallback =
               sharedGist,
               accessToken,
               content: gistContent,
+              baseUrl,
             });
 
             if (result.status === CreateGistResultStatus.Succeeded) {
@@ -171,6 +178,7 @@ const shareGistEditorCallback =
             new SetGistDescriptionModal(app, filename, async (description) => {
               const result = await createGist({
                 accessToken,
+                baseUrl,
                 content: gistContent,
                 description,
                 filename,
@@ -198,6 +206,7 @@ const shareGistEditorCallback =
       new SetGistDescriptionModal(app, filename, async (description) => {
         const result = await createGist({
           accessToken,
+          baseUrl,
           content: gistContent,
           description,
           filename,
@@ -231,6 +240,7 @@ const documentChangedAutoSaveCallback = async (
 ) => {
   const { plugin, file, content: rawContent } = opts;
   const accessToken = getAccessToken();
+  const baseUrl = getBaseUrl();
 
   const { includeFrontMatter, showAutoSaveNotice } =
     await getLatestSettings(plugin);
@@ -249,7 +259,12 @@ const documentChangedAutoSaveCallback = async (
 
   if (existingSharedGists.length) {
     for (const sharedGist of existingSharedGists) {
-      const result = await updateGist({ sharedGist, accessToken, content });
+      const result = await updateGist({
+        sharedGist,
+        accessToken,
+        content,
+        baseUrl,
+      });
       if (result.status === CreateGistResultStatus.Succeeded) {
         const updatedContent = upsertSharedGistForFile(
           result.sharedGist,
@@ -274,7 +289,7 @@ export default class ShareAsGistPlugin extends Plugin {
 
     this.addCommand({
       id: 'share-as-public-dotcom-gist',
-      name: 'Share as public gist on GitHub.com',
+      name: 'Share as public gist on GitHub',
       editorCallback: shareGistEditorCallback({
         plugin: this,
         app: this.app,
@@ -284,7 +299,7 @@ export default class ShareAsGistPlugin extends Plugin {
 
     this.addCommand({
       id: 'share-as-private-dotcom-gist',
-      name: 'Share as private gist on GitHub.com',
+      name: 'Share as private gist on GitHub',
       callback: shareGistEditorCallback({
         plugin: this,
         app: this.app,
@@ -294,7 +309,7 @@ export default class ShareAsGistPlugin extends Plugin {
 
     this.addCommand({
       id: 'copy-gist-url',
-      name: 'Copy GitHub.com gist URL',
+      name: 'Copy GitHub gist URL',
       callback: copyGitUrlEditorCallback({
         plugin: this,
         app: this.app,
@@ -466,21 +481,29 @@ class ShareAsGistSettingTab extends PluginSettingTab {
     const { containerEl } = this;
 
     const accessToken = getAccessToken();
+    const baseUrl = getBaseUrl();
 
     containerEl.empty();
 
     containerEl.createEl('h2', { text: 'Share as Gist' });
 
     new Setting(containerEl)
-      .setName('GitHub.com personal access token')
+      .setName('GitHub personal access token')
       .setDesc(
-        'An access token for GitHub.com with permission to write gists. You can create one from "Settings" in your GitHub account.',
+        'An access token for your GitHub instance with permission to write gists. You can create one from "Settings" in your GitHub account.',
       )
       .addText((text) =>
         text
           .setPlaceholder('Your personal access token')
           .setValue(accessToken)
           .onChange(setAccessToken),
+      );
+
+    new Setting(containerEl)
+      .setName('GitHub base URL')
+      .setDesc('Github instance base url')
+      .addText((text) =>
+        text.setPlaceholder('Base URL').setValue(baseUrl).onChange(setBaseUrl),
       );
 
     new Setting(containerEl)
